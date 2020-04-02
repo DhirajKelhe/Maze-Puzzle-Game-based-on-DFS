@@ -41,6 +41,7 @@ class Maze:
     def __init__(self, maze):
         ''' constructor of class '''
         self.rows = self.columns = 51  # Max size 
+        self.squareSize = 0
         self.solveMaze = False
         self.found = False
         self.searching = False
@@ -67,11 +68,11 @@ class Maze:
         for i, action in enumerate(("New grid", "Create a Maze", "Clear", "Solve the Maze")):
             button = Button(app, text=action, width=21, font = ('Roboto', 12, 'bold'), bd = 3, bg = 'darkblue', fg = 'white',
                         command = partial(self.actions, action))
-            button.place(x=970 if i%2==0 else 1190, y=230+45*int(i/2))
+            button.place(relx=0.635 if i%2==0 else 0.775, rely=0.25+0.05*int(i/2))
             self.buttons.append(button)
 
         self.canvas = Canvas(app, bd=0, highlightthickness = 0)
-        self.initializeMaze(False)
+        self.initializeGrid(False)
     
     def actions(self, action):
         if action == "New grid":
@@ -86,34 +87,30 @@ class Maze:
     def newGrid(self):
         self.solveMaze = False
         self.buttons[3].configure(fg = "WHITE")
-        self.initializeMaze(False)
+        self.initializeGrid(False)
     
     def createMaze(self):
         self.solveMaze = False
         self.buttons[3].configure(fg = "WHITE")
-        self.initializeMaze(True)
+        self.initializeGrid(True)
 
     def clearMaze(self):
         self.solveMaze = False
         self.buttons[3].configure(fg = "WHITE")
         self.gridCreator()
-
-    def mazeSolver(self):
-        self.solveMaze = True
-        self.searching = True
-        self.buttons[3].configure(fg="YELLOW")
         
-    def initializeMaze(self, flag):
+    def initializeGrid(self, flag):
         self.rows = self.columns = int(self.countBox.get())
-        if (flag and self.rows%2!=1):   # Grid won't have any path for Even no.s. Thus making count to odd
-            self.columns = self.rows = self.rows - 1
+        if flag and (self.rows % 2 != 1):   # Grid won't have any path for Even no.s. Thus making count to odd
+            self.rows = self.rows - 1
+            self.columns = self.rows
             self.rowsVar.set(self.rows)
-            self.colsVar.set(self.colsVar)
+            self.colsVar.set(self.columns)
         
         self.grid = self.array[:self.rows*self.columns]
         self.grid = self.grid.reshape(self.rows, self.columns)
 
-        self.squareSize = int(800/(self.rows))
+        self.squareSize = int(800/self.rows)
 
         # background design
         self.width = self.height = self.columns * self.squareSize + 1
@@ -125,6 +122,9 @@ class Maze:
             for c in list(range(self.columns)):
                 self.grid[r][c] = self.Empty
 
+        self.startPos = self.Cell(self.rows-2, 1)
+        self.targetPos = self.Cell(1, self.columns-2)
+
         # Calculation of the coordinates of the cells' centers
         for r in range(self.rows):
             for c in range(self.columns):
@@ -132,7 +132,6 @@ class Maze:
                                                     r*self.squareSize + self.squareSize/2)
 
         self.gridCreator()
-
         if flag:
             maze = self.mazeCreator(int(self.rows/2))
             for r in range(self.rows):
@@ -187,13 +186,13 @@ class Maze:
             self.startPos = self.Cell(self.rows-2, 1)
             self.targetPos = self.Cell(1, self.columns-2)
 
-        self.expanded = 0
         self.found = False
         self.searching = False
         self.endOfSearch = False
         self.openList.clear()
         self.closedList.clear()
         self.openList = [self.startPos]
+        self.closedList = []
         self.grid[self.targetPos.row][self.targetPos.col] = self.Target
         self.grid[self.startPos.row][self.startPos.col] = self.Start
 
@@ -213,7 +212,7 @@ class Maze:
                 elif self.grid[r][c] == self.Obstacle:
                     color = "BLACK"
                 elif self.grid[r][c] == self.Frontier:
-                    color = "PURPLE"
+                    color = "BLUE"
                 elif self.grid[r][c] == self.Explored:
                     color = "CYAN"
                 elif self.grid[r][c] == self.Route:
@@ -229,11 +228,97 @@ class Maze:
         polygon.extend((    c*self.squareSize + 1, (r+1)*self.squareSize + 0))
         return polygon
 
+    def mazeSolver(self):
+        self.solveMaze = True
+        self.searching = True
+        self.buttons[3].configure(fg="YELLOW")
+
+        while not self.endOfSearch:
+            # if no element in openList, then no solution is present
+            if(not self.openList):
+                self.endOfSearch = True
+                self.grid[self.startPos.row][self.startPos.col] = self.Start
+                # self.message.configure(text="No Path Found!")
+                self.message.configure(app, text="No Path Found!", width = 55, font = ('Helvetica', 15), fg="BLUE")
+                self.paintCells()
+            else:
+                # expand node:
+                self.expandNodes()
+                if self.found:
+                    self.endOfSearch = True
+                    self.plotRoute()
+
+    def expandNodes(self):
+        current = self.openList.pop(0)
+        self.closedList.insert(0, current)
+        self.grid[current.row][current.col] = self.Explored
+        self.canvas.create_polygon(self.calculateSquare(current.row, current.col), width=0, fill="CYAN")
+
+        if current == self.targetPos:
+            last = self.targetPos
+            last.prev = current.prev
+            self.closedList.append(last)
+            self.found = True
+            return
+                
+        successors = self.createSuccessors(current, False)
+        for cell in successors:
+            self.openList.insert(0, cell)
+            self.grid[cell.row][cell.col] = self.Frontier
+            self.canvas.create_polygon(self.calculateSquare(cell.row, cell.col), width=0, fill="BLUE")
+
+    def createSuccessors(self, current, flag):
+        ''' Creates successors of a cell '''
+        r = current.row
+        c = current.col
+        successors = []
+        if(r>0 and self.grid[r-1][c] != self.Obstacle
+            and (not self.Cell(r-1, c) in self.openList and not self.Cell(r-1, c) in self.closedList)):
+            cell = self.Cell(r-1, c)
+            cell.prev = current
+            successors.append(cell)
+        
+        if (c < self.columns-1 and self.grid[r][c+1] != self.Obstacle and
+                (not self.Cell(r, c+1) in self.openList and not self.Cell(r, c+1) in self.closedList)):
+            cell = self.Cell(r, c+1)
+            cell.prev = current
+            successors.append(cell)
+        
+        if (r < self.rows-1 and self.grid[r+1][c] != self.Obstacle and
+                ((not self.Cell(r+1, c) in self.openList and not self.Cell(r+1, c) in self.closedList))):
+            cell = self.Cell(r+1, c)
+            cell.prev = current
+            successors.append(cell)
+        
+        if (c > 0 and self.grid[r][c-1] != self.Obstacle and
+                (not self.Cell(r, c-1) in self.openList and not self.Cell(r, c-1) in self.closedList)):
+            cell = self.Cell(r, c-1)
+            cell.prev = current
+            successors.append(cell)
+        return reversed(successors)
+    
+    def plotRoute(self):
+        '''Plot route from Start to Target'''
+        self.paintCells()
+        self.searching = False
+
+        index = self.closedList.index(self.targetPos)
+        cur = self.closedList[index]
+        self.grid[cur.row][cur.col] = self.Target
+        self.canvas.create_polygon(self.calculateSquare(cur.row, cur.col), width=0, fill="GREEN")
+        while cur != self.startPos:
+            cur = cur.prev
+            self.grid[cur.row][cur.col] = self.Route
+            self.canvas.create_polygon(self.calculateSquare(cur.row, cur.col), width=0, fill="YELLOW")
+
+        self.grid[self.startPos.row][self.startPos.col] = self.Start
+        self.canvas.create_polygon(self.calculateSquare(self.startPos.row, self.startPos.col), width=0, fill="RED")
+            
 if __name__ == '__main__':
     app = Tk()
     app.title("Maze Solver using DFS")
     app.attributes('-fullscreen',True)
-    exitButton = Button(app, text='Exit', command = app.destroy, bd = 0, font = ('arial', 15, 'bold'), fg = 'red').place(relx = .94, rely = .03)
+    exitButton = Button(app, text='Exit', command = app.destroy, bd = 0, font = ('arial', 17, 'bold'), fg = 'red').place(relx = .94, rely = .03)
     count = Label(app, text = 'Select rows & columns count (5 to 51 odd values ONLY) => ', font = ('arial', 14))
     count.place(relx = .58, rely = .15, anchor = W)
     Maze(app)
