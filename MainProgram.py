@@ -6,8 +6,24 @@ import numpy as np
 from functools import partial
 
 class Maze:
-    '''Maze class to create and solve Maze by DFS.'''
+    '''Maze class to create and solve Maze by DFS '''
+    class Cell(object):
+        ''' Class which represents cell of the grid '''
+        def __init__(self, row, col):
+            self.row = row
+            self.col = col
+        def __eq__(self, other):
+            if isinstance(other, self.__class__):
+                return self.row == other.row and self.col == other.col
+            else:
+                return False
     
+    # Constants:
+    Empty = 0
+    Obstacle = 1
+    Start = 2
+    Target = 3
+
     def __init__(self, maze):
         ''' constructor of class '''
         self.rows = self.columns = 51  # Max size 
@@ -15,6 +31,7 @@ class Maze:
         self.found = False
         self.searching = False
         self.endOfSearch = False
+        self.grid = [[]]    # Empty grid
 
         self.array = np.array([0] * (self.rows*self.columns))
         self.rowsVar = StringVar()
@@ -34,6 +51,7 @@ class Maze:
             button.place(x=920 if i%2==0 else 1140, y=230+45*int(i/2))
             self.buttons.append(button)
 
+        self.canvas = Canvas(app, bd=0, highlightthickness = 0)
         self.initializeMaze(False)
     
     def actions(self, action):
@@ -66,7 +84,30 @@ class Maze:
         self.buttons[3].configure(fg="YELLOW")
         
     def initializeMaze(self, flag):
-        pass
+        self.rows = self.columns = int(self.countBox.get())
+        if (flag and self.rows%2!=1):   # Grid won't have any path for Even no.s. Thus making count to odd
+            self.columns = self.rows = self.rows - 1
+            self.rowsVar.set(self.rows)
+            self.colsVar.set(self.colsVar)
+        
+        self.grid = self.array[:self.rows*self.columns]
+        self.grid = self.grid.reshape(self.rows, self.columns)
+
+        self.squareSize = int(800/(self.rows))
+
+        # background design
+        self.width = self.height = self.columns * self.squareSize + 1
+        self.canvas.configure(width = self.width, height = self.height)
+        self.canvas.place(relx=0.28, rely=0.5, anchor=CENTER)
+        self.canvas.create_rectangle(0, 0, self.width, self.height, width = 0, fill = "DARK GREY")
+
+        for r in range(self.rows):
+            for c in list(range(self.columns)):
+                self.grid[r][c] = self.Empty
+
+        self.startPos = self.Cell(self.rows-2, 1)
+        self.targetPos = self.Cell(1, self.columns-2)
+
 
 if __name__ == '__main__':
     app = Tk()
