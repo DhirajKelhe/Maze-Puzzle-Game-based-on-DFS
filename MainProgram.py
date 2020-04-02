@@ -24,6 +24,9 @@ class Maze:
     Obstacle = 1
     Start = 2
     Target = 3
+    Frontier = 4
+    Closed = 5
+    Route = 6
 
     def __init__(self, maze):
         ''' constructor of class '''
@@ -33,6 +36,10 @@ class Maze:
         self.searching = False
         self.endOfSearch = False
         self.grid = [[]]    # Empty grid
+        self.startPos = self.Cell(self.rows-2, 1)
+        self.targetPos = self.Cell(1, self.columns-2)
+        self.openList = []
+        self.closedList = []
 
         self.array = np.array([0] * (self.rows*self.columns))
         self.rowsVar = StringVar()
@@ -78,6 +85,7 @@ class Maze:
     def clearMaze(self):
         self.solveMaze = False
         self.buttons[3].configure(fg = "WHITE")
+        self.gridCreator()
 
     def mazeSolver(self):
         self.solveMaze = True
@@ -105,9 +113,6 @@ class Maze:
         for r in range(self.rows):
             for c in list(range(self.columns)):
                 self.grid[r][c] = self.Empty
-
-        self.startPos = self.Cell(self.rows-2, 1)
-        self.targetPos = self.Cell(1, self.columns-2)
 
         if flag:
             maze = self.mazeCreator(int(self.rows/2))
@@ -143,7 +148,33 @@ class Maze:
         for (a, b) in zip(hor, ver):
             s += ''.join(a + b)
         return s
-        
+
+    def gridCreator(self):
+        '''Initialized all cells in grid. Resets all cells to previous state'''
+        if self.searching or self.endOfSearch:
+            for r in range(self.rows):
+                for c in range(self.columns):
+                    if self.grid[r][c] in [self.Frontire, self.Closed, self.Route]:
+                        self.grid[r][c] = self.Empty
+                    if self.grid[r][c] == self.Start:
+                        self.startPos = self.Cell(r, c)
+            self.searching = False
+        else:
+            for r in range(self.rows):
+                for c in range(self.columns):
+                    self.grid[r][c] = self.Empty
+            self.startPos = self.Cell(self.rows-2, 1)
+            self.targetPos = self.Cell(1, self.columns-2)
+            
+        self.expanded = 0
+        self.found = False
+        self.searching = False
+        self.endOfSearch = False
+        self.openList.clear()
+        self.closedList.clear()
+        self.openList = [self.startPos]
+        self.grid[self.targetPos.row][self.targetPos.col] = self.Target
+        self.grid[self.startPos.row][self.startPos.col] = self.Start
 
 if __name__ == '__main__':
     app = Tk()
@@ -151,6 +182,6 @@ if __name__ == '__main__':
     app.attributes('-fullscreen',True)
     exitButton = Button(app, text='Exit', command = app.destroy, bd = 0, font = ('arial', 15, 'bold'), fg = 'red').place(relx = .94, rely = .03)
     count = Label(app, text = 'Select rows & columns count (5 to 51 odd values ONLY) => ', font = ('arial', 14))
-    count.place(relx = .55, rely = .15,anchor = W)
+    count.place(relx = .55, rely = .15, anchor = W)
     Maze(app)
     app.mainloop()
