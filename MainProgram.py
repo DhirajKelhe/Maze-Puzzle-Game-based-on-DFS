@@ -11,6 +11,11 @@ class Maze:
     def __init__(self, maze):
         ''' constructor of class '''
         self.rows = self.columns = 51  # Max size 
+        self.solveMaze = False
+        self.found = False
+        self.searching = False
+        self.endOfSearch = False
+
         self.array = np.array([0] * (self.rows*self.columns))
         self.rowsVar = StringVar()
         self.rowsVar.set(25)    # Default
@@ -21,13 +26,15 @@ class Maze:
         
         self.message = Label(app, text="Click 'Create a Maze' and then 'Solve the Maze'", width = 55, font = ('Helvetica', 15), fg="BLUE")
         self.message.place(relx=.54, rely=.21, anchor='w')
-        
+
         self.buttons = list()
         for i, action in enumerate(("New grid", "Create a Maze", "Clear", "Solve the Maze")):
             button = Button(app, text=action, width=21, font = ('Roboto', 12, 'bold'), bd = 3, bg = 'darkblue', fg = 'white',
                         command = partial(self.actions, action))
             button.place(x=920 if i%2==0 else 1140, y=230+45*int(i/2))
             self.buttons.append(button)
+
+        self.initializeMaze(False)
     
     def actions(self, action):
         if action == "New grid":
@@ -40,17 +47,27 @@ class Maze:
             self.mazeSolver()
 
     def newGrid(self):
-        pass
+        self.solveMaze = False
+        self.buttons[3].configure(fg = "WHITE")
+        self.initializeMaze(False)
     
     def createMaze(self):
-        pass
+        self.solveMaze = False
+        self.buttons[3].configure(fg = "WHITE")
+        self.initializeMaze(True)
 
     def clearMaze(self):
-        pass
+        self.solveMaze = False
+        self.buttons[3].configure(fg = "WHITE")
 
     def mazeSolver(self):
-        pass
+        self.solveMaze = True
+        self.searching = True
+        self.buttons[3].configure(fg="YELLOW")
         
+    def initializeMaze(self, flag):
+        pass
+
 if __name__ == '__main__':
     app = Tk()
     app.title("Maze Solver using DFS")
