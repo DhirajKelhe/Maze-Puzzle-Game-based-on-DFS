@@ -58,16 +58,16 @@ class Maze:
         self.colsVar = StringVar()
         self.colsVar.set(25)    # Default
         self.countBox = Spinbox(app, width=3, from_=5, to=51, textvariable=self.rowsVar, validate='focus', font=('Roboto',13), bd=2)      
-        self.countBox.place(relx=.9, rely=.15, anchor=CENTER)
+        self.countBox.place(relx=.93, rely=.15, anchor=CENTER)
         
         self.message = Label(app, text="Click 'Create a Maze' and then 'Solve the Maze'", width = 55, font = ('Helvetica', 15), fg="BLUE")
-        self.message.place(relx=.54, rely=.21, anchor='w')
+        self.message.place(relx=.57, rely=.21, anchor='w')
 
         self.buttons = list()
         for i, action in enumerate(("New grid", "Create a Maze", "Clear", "Solve the Maze")):
             button = Button(app, text=action, width=21, font = ('Roboto', 12, 'bold'), bd = 3, bg = 'darkblue', fg = 'white',
                         command = partial(self.actions, action))
-            button.place(x=920 if i%2==0 else 1140, y=230+45*int(i/2))
+            button.place(x=970 if i%2==0 else 1190, y=230+45*int(i/2))
             self.buttons.append(button)
 
         self.canvas = Canvas(app, bd=0, highlightthickness = 0)
@@ -235,6 +235,6 @@ if __name__ == '__main__':
     app.attributes('-fullscreen',True)
     exitButton = Button(app, text='Exit', command = app.destroy, bd = 0, font = ('arial', 15, 'bold'), fg = 'red').place(relx = .94, rely = .03)
     count = Label(app, text = 'Select rows & columns count (5 to 51 odd values ONLY) => ', font = ('arial', 14))
-    count.place(relx = .55, rely = .15, anchor = W)
+    count.place(relx = .58, rely = .15, anchor = W)
     Maze(app)
     app.mainloop()
