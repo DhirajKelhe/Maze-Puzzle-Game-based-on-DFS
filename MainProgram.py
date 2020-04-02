@@ -1,7 +1,4 @@
-# This is initial comment to start the project.
 from tkinter import *
-from tkinter import font
-from tkinter import messagebox
 import numpy as np
 from functools import partial
 from random import shuffle, randrange
@@ -70,6 +67,16 @@ class Maze:
                         command = partial(self.actions, action))
             button.place(relx=0.635 if i%2==0 else 0.775, rely=0.25+0.05*int(i/2))
             self.buttons.append(button)
+        
+        self.shape_frame = LabelFrame(app, text=" Notations ", width=555, height=200, fg='Black', font=('Roboto',14, 'bold'), bd=3)
+        self.shape_frame.place(relx=0.585, rely=0.41)
+        memo_colors = ("RED", "GREEN", "BLUE", "CYAN")
+        for i, memo in enumerate(("Start : Starting position from which DFS search starts", 
+                        "Target : Target position for DFS", 
+                        "Frontier : Unexplored sibling", 
+                        "Explored nodes : Path from which Target is unreachable")):
+            label = Label(app, text=memo,  width=46, anchor='w', fg=memo_colors[i], font=("Helvetica", 14))
+            label.place(relx = 0.6, rely=0.45+(0.045*i))
 
         self.canvas = Canvas(app, bd=0, highlightthickness = 0)
         self.initializeGrid(False)
@@ -130,7 +137,6 @@ class Maze:
             for c in range(self.columns):
                 self.centers[r][c] = self.Point(c*self.squareSize + self.squareSize/2,
                                                     r*self.squareSize + self.squareSize/2)
-
         self.gridCreator()
         if flag:
             maze = self.mazeCreator(int(self.rows/2))
@@ -138,7 +144,6 @@ class Maze:
                 for c in range(self.columns):
                     if maze[r*self.columns+c : r*self.columns+c+1] in "|-+":
                         self.grid[r][c] = self.Obstacle
-        
         self.paintCells()
 
     @staticmethod
