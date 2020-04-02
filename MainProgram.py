@@ -4,6 +4,7 @@ from tkinter import font
 from tkinter import messagebox
 import numpy as np
 from functools import partial
+from random import shuffle, randrange
 
 class Maze:
     '''Maze class to create and solve Maze by DFS '''
@@ -108,6 +109,41 @@ class Maze:
         self.startPos = self.Cell(self.rows-2, 1)
         self.targetPos = self.Cell(1, self.columns-2)
 
+        if flag:
+            maze = self.mazeCreator(int(self.rows/2))
+            for r in range(self.rows):
+                for c in range(self.columns):
+                    if maze[r*self.columns+c : r*self.columns+c+1] in "|-+":
+                        self.grid[r][c] = self.Obstacle
+
+    @staticmethod
+    def mazeCreator(width):
+        ''' creates a random maze using recursive backtracking algorithm. Returns maze as a string '''
+        height = width
+        vis = [[0] * width + [1] for _ in range(height)] + [[1] * (width + 1)]
+        ver = [["| "] * width + ['|'] for _ in range(height)] + [[]]
+        hor = [["+-"] * width + ['+'] for _ in range(height + 1)]
+
+        def walk(x, y):
+            vis[y][x] = 1
+
+            d = [(x - 1, y), (x, y + 1), (x + 1, y), (x, y - 1)]
+            shuffle(d)
+            for (xx, yy) in d:
+                if vis[yy][xx]:
+                    continue
+                if xx == x:
+                    hor[max(y, yy)][x] = "+ "
+                if yy == y:
+                    ver[y][max(x, xx)] = "  "
+                walk(xx, yy)
+        walk(randrange(width), randrange(height))
+
+        s = ""
+        for (a, b) in zip(hor, ver):
+            s += ''.join(a + b)
+        return s
+        
 
 if __name__ == '__main__':
     app = Tk()
