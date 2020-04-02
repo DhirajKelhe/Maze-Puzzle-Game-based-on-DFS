@@ -68,16 +68,17 @@ class Maze:
             button.place(relx=0.635 if i%2==0 else 0.775, rely=0.25+0.05*int(i/2))
             self.buttons.append(button)
         
-        self.shape_frame = LabelFrame(app, text=" Notations ", width=555, height=200, fg='Black', font=('Roboto',14, 'bold'), bd=3)
-        self.shape_frame.place(relx=0.585, rely=0.41)
+        self.shapeFrame = LabelFrame(app, text="  Notations  ", width=555, height=200, fg='Black', font=('Roboto',14, 'bold'), bd=3).place(relx=0.585, rely=0.395)
         memo_colors = ("RED", "GREEN", "BLUE", "CYAN")
         for i, memo in enumerate(("Start : Starting position from which DFS search starts", 
                         "Target : Target position for DFS", 
-                        "Frontier : Unexplored sibling", 
+                        "Frontier : All Unexplored siblings upto last step", 
                         "Explored nodes : Path from which Target is unreachable")):
             label = Label(app, text=memo,  width=46, anchor='w', fg=memo_colors[i], font=("Helvetica", 14))
-            label.place(relx = 0.6, rely=0.45+(0.045*i))
-
+            label.place(relx = 0.6, rely = 0.435+(0.045*i))
+        
+        self.explFrame = LabelFrame(app, text="  Maze Path Exploration Priority  ", width=555, height=80, fg='Black', font=('Roboto',14, 'bold'), bd=3).place(relx=0.585, rely=0.655)
+        Label(app, text="1. Up (↑)\t\t2. Right (→)\t3.Down (↓)\t4. Left (←)", font=("Helvetica", 13)).place(relx = 0.6, rely = 0.7)
         self.canvas = Canvas(app, bd=0, highlightthickness = 0)
         self.initializeGrid(False)
     
