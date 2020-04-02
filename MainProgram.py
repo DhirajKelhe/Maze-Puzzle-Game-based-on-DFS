@@ -3,6 +3,7 @@ from tkinter import *
 from tkinter import font
 from tkinter import messagebox
 import numpy as np
+from functools import partial
 
 class Maze:
     '''Maze class to create and solve Maze by DFS.'''
@@ -18,6 +19,37 @@ class Maze:
         self.countBox = Spinbox(app, width=3, from_=5, to=51, textvariable=self.rowsVar, validate='focus', font=('Roboto',13), bd=2)      
         self.countBox.place(relx=.9, rely=.15, anchor=CENTER)
         
+        self.message = Label(app, text="Click 'Create a Maze' and then 'Solve the Maze'", width = 55, font = ('Helvetica', 15), fg="BLUE")
+        self.message.place(relx=.54, rely=.21, anchor='w')
+        
+        self.buttons = list()
+        for i, action in enumerate(("New grid", "Create a Maze", "Clear", "Solve the Maze")):
+            button = Button(app, text=action, width=21, font = ('Roboto', 12, 'bold'), bd = 3, bg = 'darkblue', fg = 'white',
+                        command = partial(self.actions, action))
+            button.place(x=920 if i%2==0 else 1140, y=230+45*int(i/2))
+            self.buttons.append(button)
+    
+    def actions(self, action):
+        if action == "New grid":
+            self.newGrid()
+        elif action == "Create a Maze":
+            self.createMaze()
+        elif action == "Clear":
+            self.clearMaze()
+        elif action == "Solve the Maze":
+            self.mazeSolver()
+
+    def newGrid(self):
+        pass
+    
+    def createMaze(self):
+        pass
+
+    def clearMaze(self):
+        pass
+
+    def mazeSolver(self):
+        pass
         
 if __name__ == '__main__':
     app = Tk()
