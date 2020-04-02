@@ -19,13 +19,23 @@ class Maze:
             else:
                 return False
     
+    class Point(object):
+        ''' Class which represents point on the grid '''
+        def __init__(self, x, y):
+            self.X = x
+            self.Y = y
+        def getX(self):
+            return self.X
+        def getY(self):
+            return self.Y
+
     # Constants:
     Empty = 0
     Obstacle = 1
     Start = 2
     Target = 3
     Frontier = 4
-    Closed = 5
+    Explored = 5
     Route = 6
 
     def __init__(self, maze):
@@ -40,6 +50,7 @@ class Maze:
         self.targetPos = self.Cell(1, self.columns-2)
         self.openList = []
         self.closedList = []
+        self.centers = [[self.Point(0, 0) for c in range(self.rows)] for r in range(self.rows)]  # the centers of the cells
 
         self.array = np.array([0] * (self.rows*self.columns))
         self.rowsVar = StringVar()
@@ -114,12 +125,22 @@ class Maze:
             for c in list(range(self.columns)):
                 self.grid[r][c] = self.Empty
 
+        # Calculation of the coordinates of the cells' centers
+        for r in range(self.rows):
+            for c in range(self.columns):
+                self.centers[r][c] = self.Point(c*self.squareSize + self.squareSize/2,
+                                                    r*self.squareSize + self.squareSize/2)
+
+        self.gridCreator()
+
         if flag:
             maze = self.mazeCreator(int(self.rows/2))
             for r in range(self.rows):
                 for c in range(self.columns):
                     if maze[r*self.columns+c : r*self.columns+c+1] in "|-+":
                         self.grid[r][c] = self.Obstacle
+        
+        self.paintCells()
 
     @staticmethod
     def mazeCreator(width):
@@ -154,7 +175,7 @@ class Maze:
         if self.searching or self.endOfSearch:
             for r in range(self.rows):
                 for c in range(self.columns):
-                    if self.grid[r][c] in [self.Frontire, self.Closed, self.Route]:
+                    if self.grid[r][c] in [self.Frontier, self.Explored, self.Route]:
                         self.grid[r][c] = self.Empty
                     if self.grid[r][c] == self.Start:
                         self.startPos = self.Cell(r, c)
@@ -165,7 +186,7 @@ class Maze:
                     self.grid[r][c] = self.Empty
             self.startPos = self.Cell(self.rows-2, 1)
             self.targetPos = self.Cell(1, self.columns-2)
-            
+
         self.expanded = 0
         self.found = False
         self.searching = False
@@ -175,6 +196,38 @@ class Maze:
         self.openList = [self.startPos]
         self.grid[self.targetPos.row][self.targetPos.col] = self.Target
         self.grid[self.startPos.row][self.startPos.col] = self.Start
+
+        self.paintCells()
+    
+    def paintCells(self):
+        ''' Paints cells according to their properties '''
+        color = ""
+        for r in range(self.rows):
+            for c in range(self.columns):
+                if self.grid[r][c] == self.Empty:
+                    color = "WHITE"
+                elif self.grid[r][c] == self.Start:
+                    color = "RED"
+                elif self.grid[r][c] == self.Target:
+                    color = "GREEN"
+                elif self.grid[r][c] == self.Obstacle:
+                    color = "BLACK"
+                elif self.grid[r][c] == self.Frontier:
+                    color = "PURPLE"
+                elif self.grid[r][c] == self.Explored:
+                    color = "CYAN"
+                elif self.grid[r][c] == self.Route:
+                    color = "YELLOW"
+                self.canvas.create_polygon(self.calculateSquare(r,c), width=0, fill=color)
+
+    def calculateSquare(self, r, c):
+        '''Calculate co-ordinates of vertices of the square corresponding to particular cell'''
+        polygon = []
+        polygon.extend((    c*self.squareSize + 1,     r*self.squareSize + 1))
+        polygon.extend(((c+1)*self.squareSize + 0,     r*self.squareSize + 1))
+        polygon.extend(((c+1)*self.squareSize + 0, (r+1)*self.squareSize + 0))
+        polygon.extend((    c*self.squareSize + 1, (r+1)*self.squareSize + 0))
+        return polygon
 
 if __name__ == '__main__':
     app = Tk()
