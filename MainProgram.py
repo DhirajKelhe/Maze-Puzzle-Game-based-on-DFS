@@ -34,6 +34,7 @@ class Maze:
     Frontier = 4
     Explored = 5
     Route = 6
+    Counter = 0
 
     def __init__(self, maze):
         ''' constructor of class '''
@@ -68,6 +69,10 @@ class Maze:
             button.place(relx=0.635 if i%2==0 else 0.775, rely=0.25+0.05*int(i/2))
             self.buttons.append(button)
         
+        self.buttons[1].config(state=DISABLED)
+        self.buttons[2].config(state=DISABLED)
+        self.buttons[3].config(state=DISABLED)
+
         self.shapeFrame = LabelFrame(app, text="  Notations  ", width=555, height=200, fg='Black', font=('Roboto',14, 'bold'), bd=3).place(relx=0.585, rely=0.395)
         memo_colors = ("RED", "GREEN", "BLUE", "CYAN")
         for i, memo in enumerate(("Start : Starting position from which DFS search starts", 
@@ -80,7 +85,6 @@ class Maze:
         self.explFrame = LabelFrame(app, text="  Maze Path Exploration Priority  ", width=555, height=80, fg='Black', font=('Roboto',14, 'bold'), bd=3).place(relx=0.585, rely=0.655)
         Label(app, text="1. Up (↑)\t\t2. Right (→)\t3.Down (↓)\t4. Left (←)", font=("Helvetica", 13)).place(relx = 0.6, rely = 0.7)
         self.canvas = Canvas(app, bd=0, highlightthickness = 0)
-        self.initializeGrid(False)
     
     def actions(self, action):
         if action == "New grid":
@@ -94,17 +98,24 @@ class Maze:
 
     def newGrid(self):
         self.solveMaze = False
+        self.buttons[1].config(state=NORMAL)
+        self.buttons[3].config(state=NORMAL)
         self.buttons[3].configure(fg = "WHITE")
         self.initializeGrid(False)
     
     def createMaze(self):
         self.solveMaze = False
         self.buttons[3].configure(fg = "WHITE")
+        self.buttons[2].config(state=NORMAL)
+        self.Counter = 1
         self.initializeGrid(True)
 
     def clearMaze(self):
         self.solveMaze = False
         self.buttons[3].configure(fg = "WHITE")
+        self.Counter = self.Counter - 1
+        if self.Counter == 0:
+            self.buttons[2].config(state=DISABLED)
         self.gridCreator()
         
     def initializeGrid(self, flag):
@@ -237,18 +248,18 @@ class Maze:
     def mazeSolver(self):
         self.solveMaze = True
         self.searching = True
+        self.buttons[2].config(state=NORMAL)
         self.buttons[3].configure(fg="YELLOW")
+        self.Counter = 2
 
         while not self.endOfSearch:
             # if no element in openList, then no solution is present
             if(not self.openList):
                 self.endOfSearch = True
                 self.grid[self.startPos.row][self.startPos.col] = self.Start
-                # self.message.configure(text="No Path Found!")
                 self.message.configure(app, text="No Path Found!", width = 55, font = ('Helvetica', 15), fg="BLUE")
                 self.paintCells()
-            else:
-                # expand node:
+            else: # expand node:
                 self.expandNodes()
                 if self.found:
                     self.endOfSearch = True
@@ -324,8 +335,8 @@ if __name__ == '__main__':
     app = Tk()
     app.title("Maze Solver using DFS")
     app.attributes('-fullscreen',True)
-    exitButton = Button(app, text='Exit', command = app.destroy, bd = 0, font = ('arial', 17, 'bold'), fg = 'red').place(relx = .94, rely = .03)
-    count = Label(app, text = 'Select rows & columns count (5 to 51 odd values ONLY) => ', font = ('arial', 14))
-    count.place(relx = .58, rely = .15, anchor = W)
+    Button(app, text='Exit', command = app.destroy, bd = 0, font = ('arial', 17, 'bold'), fg = 'red').place(relx = .94, rely = .03)
+    Label(app, text = 'Select rows & columns count (5 to 51 odd values ONLY) => ', font = ('arial', 14)).place(relx = .58, rely = .15, anchor = W)
+    Label(app, text = "Click on \n\n'New Grid'\n\nto create empty grid", font = ('roboto', 28, 'bold'), fg='brown').place(relx = .25, rely = .50, anchor = CENTER)
     Maze(app)
     app.mainloop()
