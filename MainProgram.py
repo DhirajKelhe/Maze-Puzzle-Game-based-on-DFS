@@ -34,7 +34,7 @@ class Maze:
     Frontier = 4
     Explored = 5
     Route = 6
-    Counter = 0
+    Countflag = False
 
     def __init__(self, maze):
         ''' constructor of class '''
@@ -107,15 +107,15 @@ class Maze:
         self.solveMaze = False
         self.buttons[3].configure(fg = "WHITE")
         self.buttons[2].config(state=NORMAL)
-        self.Counter = 1
         self.initializeGrid(True)
 
     def clearMaze(self):
         self.solveMaze = False
         self.buttons[3].configure(fg = "WHITE")
-        self.Counter = self.Counter - 1
-        if self.Counter == 0:
+        if self.Countflag == False:
             self.buttons[2].config(state=DISABLED)
+        else:
+            self.Countflag = False
         self.gridCreator()
         
     def initializeGrid(self, flag):
@@ -250,7 +250,7 @@ class Maze:
         self.searching = True
         self.buttons[2].config(state=NORMAL)
         self.buttons[3].configure(fg="YELLOW")
-        self.Counter = 2
+        self.Countflag = True
 
         while not self.endOfSearch:
             # if no element in openList, then no solution is present
