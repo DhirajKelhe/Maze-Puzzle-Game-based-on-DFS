@@ -260,17 +260,10 @@ class Maze:     # main class
         self.Countflag = True
 
         while not self.endOfSearch:
-            # if no element in openList, then no solution is present
-            if(not self.openList):
+            self.expandNodes()
+            if self.found:
                 self.endOfSearch = True
-                self.grid[self.startPos.row][self.startPos.col] = self.Start
-                self.message.configure(app, text="No Path Found!", width = 55, font = ('Helvetica', 15), fg="BLUE")
-                self.paintCells()
-            else: # expand node:
-                self.expandNodes()
-                if self.found:
-                    self.endOfSearch = True
-                    self.plotRoute()
+                self.plotRoute()
 
     def expandNodes(self):
         current = self.openList.pop(0)
@@ -278,6 +271,7 @@ class Maze:     # main class
         self.grid[current.row][current.col] = self.Explored
         self.canvas.create_polygon(self.calculateSquare(current.row, current.col), width=0, fill="CYAN")
 
+        # target node found
         if current == self.targetPos:
             last = self.targetPos
             last.prev = current.prev
@@ -296,24 +290,25 @@ class Maze:     # main class
         r = current.row
         c = current.col
         successors = []
+        # up direction
         if(r>0 and self.grid[r-1][c] != self.Obstacle
             and (not self.Cell(r-1, c) in self.openList and not self.Cell(r-1, c) in self.closedList)):
             cell = self.Cell(r-1, c)
             cell.prev = current
             successors.append(cell)
-        
+        # right direction
         if (c < self.columns-1 and self.grid[r][c+1] != self.Obstacle and
                 (not self.Cell(r, c+1) in self.openList and not self.Cell(r, c+1) in self.closedList)):
             cell = self.Cell(r, c+1)
             cell.prev = current
             successors.append(cell)
-        
+        # down direction
         if (r < self.rows-1 and self.grid[r+1][c] != self.Obstacle and
                 ((not self.Cell(r+1, c) in self.openList and not self.Cell(r+1, c) in self.closedList))):
             cell = self.Cell(r+1, c)
             cell.prev = current
             successors.append(cell)
-        
+        # left direction
         if (c > 0 and self.grid[r][c-1] != self.Obstacle and
                 (not self.Cell(r, c-1) in self.openList and not self.Cell(r, c-1) in self.closedList)):
             cell = self.Cell(r, c-1)
@@ -322,7 +317,7 @@ class Maze:     # main class
         return reversed(successors)
     
     def plotRoute(self):
-        '''Plot route from Start to Target'''
+        ''' Plot route from Start to Target node '''
         self.paintCells()
         self.searching = False
 
@@ -330,7 +325,7 @@ class Maze:     # main class
         cur = self.closedList[index]
         self.grid[cur.row][cur.col] = self.Target
         self.canvas.create_polygon(self.calculateSquare(cur.row, cur.col), width=0, fill="GREEN")
-        while cur != self.startPos:
+        while cur != self.startPos: # traverse backward towards start node from target node
             cur = cur.prev
             self.grid[cur.row][cur.col] = self.Route
             self.canvas.create_polygon(self.calculateSquare(cur.row, cur.col), width=0, fill="YELLOW")
