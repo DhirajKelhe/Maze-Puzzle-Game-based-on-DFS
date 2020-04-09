@@ -1,9 +1,9 @@
-from tkinter import *
-import numpy as np
-from functools import partial
-from random import shuffle, randrange
+from tkinter import *   # to create tkinter GUI
+import numpy as np  # for mathematical operations
+from functools import partial   # to call function with parameter
+from random import shuffle, randrange   # used in creation of random maze
 
-class Maze:
+class Maze:     # main class 
     '''Maze class to create and solve Maze by DFS '''
     class Cell(object):
         ''' Class which represents cell of the grid '''
@@ -38,6 +38,7 @@ class Maze:
 
     def __init__(self, maze):
         ''' constructor of class '''
+        # constants
         self.rows = self.columns = 51  # Max size 
         self.squareSize = 0
         self.solveMaze = False
@@ -47,10 +48,11 @@ class Maze:
         self.grid = [[]]    # Empty grid
         self.startPos = self.Cell(self.rows-2, 1)
         self.targetPos = self.Cell(1, self.columns-2)
-        self.openList = []
-        self.closedList = []
+        self.openList = []      # list for nodes which are not explored
+        self.closedList = []    # list for nodes which are explored
         self.centers = [[self.Point(0, 0) for c in range(self.rows)] for r in range(self.rows)]  # the centers of the cells
 
+        # inputs for size of grid
         self.array = np.array([0] * (self.rows*self.columns))
         self.rowsVar = StringVar()
         self.rowsVar.set(25)    # Default
@@ -62,6 +64,7 @@ class Maze:
         self.message = Label(app, text="Click 'Create a Maze' and then 'Solve the Maze'", width = 55, font = ('Helvetica', 15), fg="BLUE")
         self.message.place(relx=.57, rely=.21, anchor='w')
 
+        # buttons
         self.buttons = list()
         for i, action in enumerate(("New grid", "Create a Maze", "Clear", "Solve the Maze")):
             button = Button(app, text=action, width=21, font = ('Roboto', 12, 'bold'), bd = 3, bg = 'darkblue', fg = 'white',
@@ -73,6 +76,7 @@ class Maze:
         self.buttons[2].config(state=DISABLED)
         self.buttons[3].config(state=DISABLED)
 
+        # notations & priority information
         self.shapeFrame = LabelFrame(app, text="  Notations  ", width=555, height=200, fg='Black', font=('Roboto',14, 'bold'), bd=3).place(relx=0.585, rely=0.395)
         memo_colors = ("RED", "GREEN", "BLUE", "CYAN")
         for i, memo in enumerate(("Start : Starting position from which DFS search starts", 
@@ -119,7 +123,7 @@ class Maze:
         self.gridCreator()
         
     def initializeGrid(self, flag):
-        self.rows = self.columns = int(self.countBox.get())
+        self.rows = self.columns = int(self.countBox.get()) # taking rows/col count
         if flag and (self.rows % 2 != 1):   # Grid won't have any path for Even no.s. Thus making count to odd
             self.rows = self.rows - 1
             self.columns = self.rows
@@ -129,7 +133,7 @@ class Maze:
         self.grid = self.array[:self.rows*self.columns]
         self.grid = self.grid.reshape(self.rows, self.columns)
 
-        self.squareSize = int(800/self.rows)
+        self.squareSize = int(800/self.rows)    # how big the inner cells should be if outer square is having size 800
 
         # background design
         self.width = self.height = self.columns * self.squareSize + 1
@@ -137,25 +141,30 @@ class Maze:
         self.canvas.place(relx=0.28, rely=0.5, anchor=CENTER)
         self.canvas.create_rectangle(0, 0, self.width, self.height, width = 0, fill = "DARK GREY")
 
+        # assigning empty values to each cell in grid
         for r in range(self.rows):
             for c in list(range(self.columns)):
                 self.grid[r][c] = self.Empty
 
+        # default start position & target position
         self.startPos = self.Cell(self.rows-2, 1)
         self.targetPos = self.Cell(1, self.columns-2)
 
         # Calculation of the coordinates of the cells' centers
         for r in range(self.rows):
             for c in range(self.columns):
-                self.centers[r][c] = self.Point(c*self.squareSize + self.squareSize/2,
-                                                    r*self.squareSize + self.squareSize/2)
+                self.centers[r][c] = self.Point(c*self.squareSize + self.squareSize/2, r*self.squareSize + self.squareSize/2)
+
         self.gridCreator()
-        if flag:
+        
+        if flag:    # create the maze
             maze = self.mazeCreator(int(self.rows/2))
             for r in range(self.rows):
                 for c in range(self.columns):
                     if maze[r*self.columns+c : r*self.columns+c+1] in "|-+":
                         self.grid[r][c] = self.Obstacle
+        
+        # paint the grid with obstacles
         self.paintCells()
 
     @staticmethod
@@ -187,8 +196,8 @@ class Maze:
         return s
 
     def gridCreator(self):
-        '''Initialized all cells in grid. Resets all cells to previous state'''
-        if self.searching or self.endOfSearch:
+        '''Initializes all cells in grid. Resets all cells to previous state'''
+        if self.searching or self.endOfSearch:  # we keep maze structure (if available)
             for r in range(self.rows):
                 for c in range(self.columns):
                     if self.grid[r][c] in [self.Frontier, self.Explored, self.Route]:
@@ -196,18 +205,15 @@ class Maze:
                     if self.grid[r][c] == self.Start:
                         self.startPos = self.Cell(r, c)
             self.searching = False
-        else:
+        else:   # create a empty grid if no maze structure available
             for r in range(self.rows):
                 for c in range(self.columns):
                     self.grid[r][c] = self.Empty
-            self.startPos = self.Cell(self.rows-2, 1)
-            self.targetPos = self.Cell(1, self.columns-2)
 
         self.found = False
         self.searching = False
         self.endOfSearch = False
         self.openList.clear()
-        self.closedList.clear()
         self.openList = [self.startPos]
         self.closedList = []
         self.grid[self.targetPos.row][self.targetPos.col] = self.Target
@@ -233,6 +239,7 @@ class Maze:
                 elif self.grid[r][c] == self.Explored:
                     color = "CYAN"
                 elif self.grid[r][c] == self.Route:
+                    
                     color = "YELLOW"
                 self.canvas.create_polygon(self.calculateSquare(r,c), width=0, fill=color)
 
